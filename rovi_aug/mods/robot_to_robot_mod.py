@@ -12,7 +12,7 @@ class R2RMod(BaseMod):
     r2r_augmentor = None
     batch_size = 200
     device = "cuda:0"
-    image_input_key = ""
+    masked_images_input_key = ""
     image_output_key = ""
     controlnet_module_path = ""
     controlnet_checkpoint_folder_path = ""
@@ -23,7 +23,7 @@ class R2RMod(BaseMod):
         cls,
         features: tfds.features.FeaturesDict,
     ) -> tfds.features.FeaturesDict:
-        img_size = features["steps"]["observation"][R2RMod.image_input_key].shape[0]
+        img_size = features["steps"]["observation"][R2RMod.masked_images_input_key].shape[0]
         return add_obs_key(features, "robot_aug_imgs", tfds.features.Tensor(shape=(img_size, img_size, 3), dtype=tf.uint8))
 
     @classmethod
@@ -44,7 +44,7 @@ class R2RMod(BaseMod):
                 with torch.no_grad():
                     return R2RMod.r2r_augmentor.process_folders(trajectory_images)
 
-            step["observation"]["robot_aug_imgs"] = tf.numpy_function(process_images, [step["observation"]["masked_imgs"]], tf.uint8)
+            step["observation"][R2RMod.image_output_key] = tf.numpy_function(process_images, [step["observation"][R2RMod.masked_images_input_key]], tf.uint8)
             return step
 
         def episode_map_fn(episode):
@@ -60,7 +60,7 @@ class R2RMod(BaseMod):
         """
         R2RMod.device = cfg.device
         R2RMod.batch_size = cfg.robot_to_robot.batch_size
-        R2RMod.image_input_key = cfg.robot_to_robot.image_input_key
+        R2RMod.masked_images_input_key = cfg.robot_to_robot.masked_images_input_key
         R2RMod.image_output_key = cfg.robot_to_robot.image_output_key
         R2RMod.controlnet_module_path = cfg.robot_to_robot.controlnet_module_path
         R2RMod.controlnet_checkpoint_folder_path = cfg.robot_to_robot.controlnet_checkpoint_folder_path
