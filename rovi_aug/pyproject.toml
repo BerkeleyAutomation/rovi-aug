@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rovi_aug"
+version = "0.1.0"
+description = "Augments robots and viewpoints in datasets"
+authors = [
+    { name = "Lawrence Chen", email = "yunliang.chen@berkeley.edu" },
+    { name = "Chenfeng Xu", email = "xuchenfeng@berkeley.edu" },
+    { name = "Karthik Dharmarajan", email = "kdharmarajan@berkeley.edu" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+keywords = [""]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "omegaconf"
+]
+
+[tool.setuptools.packages.find]
+where = ["rovi_aug"]
