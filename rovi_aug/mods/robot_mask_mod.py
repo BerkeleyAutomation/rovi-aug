@@ -1,79 +1,88 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
-import math
-import os
 import sys
 import torch
+import numpy as np
 from omegaconf import DictConfig
 
 from rovi_aug.mods.base_mod import BaseMod
-from rovi_aug.view_augmentation.view_augmentation import ViewAugmentation
-from rovi_aug.view_augmentation.sampler.uniform_view_sampler import UniformViewSampler
+from rlds_dataset_mod.mod_functions import add_obs_key
 
-class ViewAugmentationMod(BaseMod):
-    # Sadly, these variables have to be global given the abstractions from the tfds dataset
-    batch_size = 80
+class RobotMaskMod(BaseMod):
+    mask_generator = None
+    batch_size = 256
     device = "cuda:0"
-    zeronvs_path = ""
+    image_input_key = "front_rgb"
+    mask_output_key = "masks"
+    masked_images_output_key = "masked_imgs"
 
-    # Internal non-configurable vars
-    view_augmenter = None
-    traj_idx = 0
+    sam_checkpoint_path = ""
+    sam_package_path = ""
+    sam_lora_checkpoint_path = ""
 
     @classmethod
     def mod_features(
         cls,
         features: tfds.features.FeaturesDict,
     ) -> tfds.features.FeaturesDict:
-        return features  # no feature changes
+        img_size = features["steps"]["observation"][RobotMaskMod.image_input_key].shape[0]
+        new_feature_tensor_type = tfds.features.Tensor(shape=(img_size, img_size, 3), dtype=tf.uint8)(img_size, img_size, 3)
+
+        # Adds the mask and masked image features to the output observations
+        first_added_feature_dict = add_obs_key(features, RobotMaskMod.mask_output_key, new_feature_tensor_type)
+        return add_obs_key(first_added_feature_dict, RobotMaskMod.masked_images_output_key, new_feature_tensor_type)
 
     @classmethod
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
-        if ViewAugmentationMod.view_augmenter is None:
-            view_sampler = UniformViewSampler(device=ViewAugmentationMod.device)
+        if RobotMaskMod.mask_generator is None:
+            sys.path.append(RobotMaskMod.sam_package_path)
+            from inference_factorized import InferenceManager
+            mask_args = {
+                "num_classes": 1,
+                "img_size": 256,
+                "input_size": 256,
+                "seed": 1234,
+                "deterministic": 1,
+                "ckpt": RobotMaskMod.sam_checkpoint_path,
+                "lora_ckpt": RobotMaskMod.sam_lora_checkpoint_path,
+                "vit_name": "vit_h",
+                "rank": 4,
+                "module": "sam_lora_image_encoder",
+                "mask_threshold": 0.5,
+                "device": RobotMaskMod.device,
+            }
+            RobotMaskMod.mask_generator = InferenceManager(mask_args)
 
-            # Hack to import ZeroNVS, since packaging doesn't seem to work
-            sys.path.append(os.path.expanduser(ViewAugmentationMod.zeronvs_path))
-            # import threestudio.utils.misc as misc
-            # misc.EXT_DEVICE = device
-
-            from threestudio.models.guidance import zero123_guidance
-
-            ViewAugmentationMod.view_augmenter = ViewAugmentation(
-                view_sampler,
-                sample_img_path="/home/kdharmarajan/mirage2/viewpoint-robust-control/original_view.png",
-                checkpoint_path="/home/kdharmarajan/mirage2/viewpoint-robust-control/checkpoint/zeronvs.ckpt",
-                zeronvs_config_path="/home/kdharmarajan/mirage2/viewpoint-robust-control/ZeroNVS/zeronvs_config.yaml",
-                zero123_guidance_module=zero123_guidance,
-                original_size=256,
-                device=ViewAugmentationMod.device,
-            )
-
-        def augment_view(step):
+        def generate_masks(step):
             def process_images(trajectory_images):
-                for i in range(0, math.ceil(len(trajectory_images)//ViewAugmentationMod.batch_size) + 1):
-                    start = i*ViewAugmentationMod.batch_size
-                    end = min((i+1)*ViewAugmentationMod.batch_size, len(trajectory_images))
-                    camera_obs_batch = torch.from_numpy(trajectory_images[start:end]).float().to(ViewAugmentationMod.view_augmenter.device)
-                    augmented_batch = ViewAugmentationMod.view_augmenter(camera_obs_batch, traj_id=ViewAugmentationMod.traj_idx, batch_id=i)
-                    trajectory_images[start:end] = augmented_batch.cpu().numpy()
-                ViewAugmentationMod.traj_idx += 1
-                return trajectory_images
+                masked_images, output_masks = RobotMaskMod.mask_generator.inference(torch.from_numpy(trajectory_images).permute(0, 3, 1, 2))
+                masked_images *= 255
+                masked_images = masked_images.permute(0, 2, 3, 1).cpu().numpy().astype(np.uint8)
+                output_masks = output_masks.permute(0, 2, 3, 1).cpu().numpy().astype(np.uint8)
+                return np.concatenate([masked_images, output_masks], axis=-1)
 
-            step["observation"]["robot_aug_imgs"] = tf.numpy_function(process_images, [step["observation"]["merged_robot_aug"]], tf.uint8)
+            processed_output = tf.numpy_function(process_images, [step["observation"][RobotMaskMod.image_input_key]], tf.uint8)
+            step["observation"][RobotMaskMod.masked_images_output_key] = processed_output[..., :3]
+            step["observation"][RobotMaskMod.mask_output_key] = processed_output[..., 3:]
+
             return step
 
         def episode_map_fn(episode):
-            episode["steps"] = episode["steps"].batch(ViewAugmentationMod.batch_size).map(augment_view).unbatch()
+            episode["steps"] = episode["steps"].batch(RobotMaskMod.batch_size).map(generate_masks).unbatch()
             return episode
 
         return ds.map(episode_map_fn)
-
+    
     @classmethod
     def load(cfg: DictConfig):
         """
         Uses information from the config file to load the mod.
         """
-        ViewAugmentationMod.device = cfg.device
-        ViewAugmentationMod.zeronvs_path = cfg.view_augmentation.zeronvs_path
-        ViewAugmentationMod.batch_size = cfg.view_augmentation.batch_size
+        RobotMaskMod.device = cfg.device
+        RobotMaskMod.sam_checkpoint_path = cfg.robot_mask.sam_checkpoint_path
+        RobotMaskMod.sam_package_path = cfg.robot_mask.sam_package_path
+        RobotMaskMod.sam_lora_checkpoint_path = cfg.robot_mask.sam_lora_checkpoint_path
+        RobotMaskMod.batch_size = cfg.robot_mask.batch_size
+        RobotMaskMod.image_input_key = cfg.robot_mask.image_input_key
+        RobotMaskMod.mask_output_key = cfg.robot_mask.mask_output_key
+        RobotMaskMod.masked_images_output_key = cfg.robot_mask.masked_images_output_key
