@@ -7,9 +7,15 @@ This repository provides the official implementation of [RoVi-Aug: Robot and Vie
 ](https://rovi-aug.github.io/).
 
 # Installation
+The installation process will install companion repos into a folder called `deps` inside of this repository. Since there are several companents of the pipeline (see below), there will be four conda environments created.
 
+Run the following script from the root directory of the repository and follow the prompts provided to decide what to install or not install:
+```
+./install.sh
+```
 
 # Code Structure
+![Pipeline](docs/pipeline.png)
 
 # Citation
 If you found this paper / code useful, please consider citing: 
