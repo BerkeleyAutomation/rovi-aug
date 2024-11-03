@@ -18,6 +18,8 @@ class ViewAugmentationMod(BaseMod):
     zeronvs_checkpoint_path = ""
     zeronvs_config_path = ""
     sample_img_path = ""
+    image_input_key = ""
+    image_output_key = ""
 
     # Internal non-configurable vars
     view_augmenter = None
@@ -63,7 +65,7 @@ class ViewAugmentationMod(BaseMod):
                 ViewAugmentationMod.traj_idx += 1
                 return trajectory_images
 
-            step["observation"]["robot_aug_imgs"] = tf.numpy_function(process_images, [step["observation"]["merged_robot_aug"]], tf.uint8)
+            step["observation"][ViewAugmentationMod.image_input_key] = tf.numpy_function(process_images, [step["observation"][ViewAugmentationMod.image_output_key]], tf.uint8)
             return step
 
         def episode_map_fn(episode):
@@ -83,3 +85,6 @@ class ViewAugmentationMod(BaseMod):
         ViewAugmentationMod.zeronvs_checkpoint_path = cfg.view_augmentation.zeronvs_checkpoint_path
         ViewAugmentationMod.zeronvs_config_path = cfg.view_augmentation.zeronvs_config_path
         ViewAugmentationMod.sample_img_path = cfg.view_augmentation.sample_img_path
+
+        ViewAugmentationMod.image_input_key = cfg.view_augmentation.image_input_key
+        ViewAugmentationMod.image_output_key = cfg.view_augmentation.image_output_key
