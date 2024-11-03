@@ -14,8 +14,10 @@ Run the following script from the root directory of the repository and follow th
 ./install.sh
 ```
 
-# Code Structure
+# Code Structure & Usage
 ![Pipeline](docs/pipeline.png)
+
+Each part of the pipeline (below) runs in its own conda environment due to dependency conflicts. At a high level, each stage in the pipeline processes datasets in the rlds format by loading in data from certain keys in the feature dictionary and outputting a new key in the features dictionary. The general way of running the pipeline is running each stage individually through an entire dataset, saving the results, and then running the next stage on that modified dataset. This approach makes it easier to use GPU operations with TensorFlow datasets.
 
 # Citation
 If you found this paper / code useful, please consider citing: 
@@ -36,3 +38,12 @@ This project is licensed under the MIT License. See the LICENSE file for more de
 
 # Contact
 For questions or issues, please reach out to Lawrence Chen or open an issue.
+
+## Known Inconveniences
+If any part of the installation process fails, please look at the README correpsonding to the folder in the deps and follow instructions there to resolve the installation in the respective conda environment.
+
+The pipeline requires multiple conda environments to be set up, while ideally only one would be needed. Unfortunately, there are some dependencies that conflict with each other, so this is the current workaround.
+
+The underlying record types being used actually have a max size, and it is possible for certain datasets that when adding all of the keys from the intermediate stages that tfds will error out. To resolve this issue, you may need to modify the code to write to keys where are no longer needed (overwriting redundant data) to save space. 
+
+The GPU may not be utilized to its full potential when using the tfds system, but this is being looked into.
