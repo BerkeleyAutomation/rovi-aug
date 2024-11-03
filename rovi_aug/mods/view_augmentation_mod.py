@@ -15,6 +15,9 @@ class ViewAugmentationMod(BaseMod):
     batch_size = 80
     device = "cuda:0"
     zeronvs_path = ""
+    zeronvs_checkpoint_path = ""
+    zeronvs_config_path = ""
+    sample_img_path = ""
 
     # Internal non-configurable vars
     view_augmenter = None
@@ -41,9 +44,9 @@ class ViewAugmentationMod(BaseMod):
 
             ViewAugmentationMod.view_augmenter = ViewAugmentation(
                 view_sampler,
-                sample_img_path="/home/kdharmarajan/mirage2/viewpoint-robust-control/original_view.png",
-                checkpoint_path="/home/kdharmarajan/mirage2/viewpoint-robust-control/checkpoint/zeronvs.ckpt",
-                zeronvs_config_path="/home/kdharmarajan/mirage2/viewpoint-robust-control/ZeroNVS/zeronvs_config.yaml",
+                sample_img_path=ViewAugmentationMod.sample_img_path,
+                checkpoint_path=ViewAugmentationMod.zeronvs_checkpoint_path,
+                zeronvs_config_path=ViewAugmentationMod.zeronvs_config_path,
                 zero123_guidance_module=zero123_guidance,
                 original_size=256,
                 device=ViewAugmentationMod.device,
@@ -77,3 +80,6 @@ class ViewAugmentationMod(BaseMod):
         ViewAugmentationMod.device = cfg.device
         ViewAugmentationMod.zeronvs_path = cfg.view_augmentation.zeronvs_path
         ViewAugmentationMod.batch_size = cfg.view_augmentation.batch_size
+        ViewAugmentationMod.zeronvs_checkpoint_path = cfg.view_augmentation.zeronvs_checkpoint_path
+        ViewAugmentationMod.zeronvs_config_path = cfg.view_augmentation.zeronvs_config_path
+        ViewAugmentationMod.sample_img_path = cfg.view_augmentation.sample_img_path
