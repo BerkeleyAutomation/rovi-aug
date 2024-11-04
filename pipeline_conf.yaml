@@ -1,0 +1,14 @@
+device: cuda
+
+view_augmentation:
+  zeronvs_path:
+
+  # Currently only 
+  sampler:
+    # Should the same random rotation + translation be used for all views in a trajectory?
+    trajectory_consistent: False
+    
+    # TODO: Make this general to include specific translation / rotation values
+    # Values can be lower, upper, ultra (goes from small translations / rotations to large ones)
+    randomization_amount: "lower"
+

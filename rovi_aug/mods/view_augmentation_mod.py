@@ -8,18 +8,16 @@ from omegaconf import DictConfig
 
 from rovi_aug.mods.base_mod import BaseMod
 from rovi_aug.view_augmentation.view_augmentation import ViewAugmentation
-from rovi_aug.view_augmentation.sampler.uniform_view_sampler import UniformViewSampler
+from rovi_aug.view_augmentation.sampler.view_sampler import ViewSampler
 
 class ViewAugmentationMod(BaseMod):
     # Sadly, these variables have to be global given the abstractions from the tfds dataset
     batch_size = 80
     device = "cuda:0"
-    zeronvs_path = ""
-    zeronvs_checkpoint_path = ""
-    zeronvs_config_path = ""
-    sample_img_path = ""
     image_input_key = ""
     image_output_key = ""
+
+    trajectory_consistent_sampling = False
 
     # Internal non-configurable vars
     view_augmenter = None
@@ -34,26 +32,6 @@ class ViewAugmentationMod(BaseMod):
 
     @classmethod
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
-        if ViewAugmentationMod.view_augmenter is None:
-            view_sampler = UniformViewSampler(device=ViewAugmentationMod.device)
-
-            # Hack to import ZeroNVS, since packaging doesn't seem to work
-            sys.path.append(os.path.expanduser(ViewAugmentationMod.zeronvs_path))
-            # import threestudio.utils.misc as misc
-            # misc.EXT_DEVICE = device
-
-            from threestudio.models.guidance import zero123_guidance
-
-            ViewAugmentationMod.view_augmenter = ViewAugmentation(
-                view_sampler,
-                sample_img_path=ViewAugmentationMod.sample_img_path,
-                checkpoint_path=ViewAugmentationMod.zeronvs_checkpoint_path,
-                zeronvs_config_path=ViewAugmentationMod.zeronvs_config_path,
-                zero123_guidance_module=zero123_guidance,
-                original_size=256,
-                device=ViewAugmentationMod.device,
-            )
-
         def augment_view(step):
             def process_images(trajectory_images):
                 for i in range(0, math.ceil(len(trajectory_images)//ViewAugmentationMod.batch_size) + 1):
@@ -80,11 +58,26 @@ class ViewAugmentationMod(BaseMod):
         Uses information from the config file to load the mod.
         """
         ViewAugmentationMod.device = cfg.device
-        ViewAugmentationMod.zeronvs_path = cfg.view_augmentation.zeronvs_path
         ViewAugmentationMod.batch_size = cfg.view_augmentation.batch_size
-        ViewAugmentationMod.zeronvs_checkpoint_path = cfg.view_augmentation.zeronvs_checkpoint_path
-        ViewAugmentationMod.zeronvs_config_path = cfg.view_augmentation.zeronvs_config_path
-        ViewAugmentationMod.sample_img_path = cfg.view_augmentation.sample_img_path
 
         ViewAugmentationMod.image_input_key = cfg.view_augmentation.image_input_key
         ViewAugmentationMod.image_output_key = cfg.view_augmentation.image_output_key
+
+        view_sampler = ViewSampler.from_config(cfg)
+
+        # Hack to import ZeroNVS, since packaging doesn't seem to work
+        sys.path.append(os.path.expanduser(cfg.view_augmentation.zeronvs_path))
+        # import threestudio.utils.misc as misc
+        # misc.EXT_DEVICE = device
+
+        from threestudio.models.guidance import zero123_guidance
+
+        ViewAugmentationMod.view_augmenter = ViewAugmentation(
+            view_sampler,
+            sample_img_path=cfg.view_augmentation.sample_img_path,
+            checkpoint_path=cfg.view_augmentation.zeronvs_checkpoint_path,
+            zeronvs_config_path=cfg.view_augmentation.zeronvs_config_path,
+            zero123_guidance_module=zero123_guidance,
+            original_size=256,
+            device=ViewAugmentationMod.device,
+        )

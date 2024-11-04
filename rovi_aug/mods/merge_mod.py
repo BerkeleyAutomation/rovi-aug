@@ -1,8 +1,6 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import sys
-import torch
-import numpy as np
 from omegaconf import DictConfig
 
 from rovi_aug.mods.base_mod import BaseMod
