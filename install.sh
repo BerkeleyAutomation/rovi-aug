@@ -10,7 +10,9 @@ CONDA_ZERO_NVS_ENV_NAME="rlds_env_zeronvs"
 echo "Welcome to the Rovi-Aug Installer!"
 echo "This script will help you install the necessary components for Rovi-Aug."
 
+eval "$(conda shell.bash hook)"
 mkdir deps/
+mkdir weights/
 
 # Query the user for installation
 read -p "Do you want to proceed with installing the robot segmentation code? (Required for Ro-Aug) (y/n): " response
@@ -83,13 +85,18 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
 
     pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
     conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
-    pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
+    pip install ninja pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 
     pip install -r deps/ZeroNVS/requirements-zeronvs.txt
     pip install nerfacc -f https://nerfacc-bucket.s3.us-west-2.amazonaws.com/whl/torch-2.0.0_cu118.html
 
     pip install -e deps/ZeroNVS/zeronvs_diffusion/zero123
 
+    echo "Downloading weights for ZeroNVS..."
+    # Download the weights
+    pip install gdown
+    mkdir weights/zeronvs
+    gdown --fuzzy https://drive.google.com/file/d/17WEMfs2HABJcdf4JmuIM3ti0uz37lSZg/view?usp=sharing -O weights/zeronvs/zeronvs.ckpt
     conda deactivate
 else
     echo "Viewpoint augmentation installation aborted by the user."

@@ -49,10 +49,11 @@ aug_merge:
 # Vi-Aug related parameters
 view_augmentation:
   # Paths, should be good if running from rovi-aug root
-  sample_img_path: 
-  zeronvs_checkpoint_path: 
-  zeronvs_config_path: 
-  zeronvs_module_path: 
+  # For the sample image, the path just needs to point to any valid img
+  sample_img_path: docs/splash_fig.png
+  zeronvs_checkpoint_path: weights/zeronvs/zeronvs.ckpt
+  zeronvs_config_path: deps/ZeroNVS/zeronvs_config.yaml
+  zeronvs_module_path: deps/ZeroNVS
 
   batch_size: 80
   image_input_key: 

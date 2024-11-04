@@ -1,4 +1,7 @@
 deps/*
+weights/*
 
 # ignore pycache
 **/__pycache__/*
+
+**/*.egg-info/*
