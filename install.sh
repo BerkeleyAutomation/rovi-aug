@@ -28,6 +28,10 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     conda create -n $CONDA_SAM_ENV_NAME python=3.9
     conda activate $CONDA_SAM_ENV_NAME
     pip install -r deps/SAMed_h/requirements.txt
+    
+    echo "Downloading weights for SAM..."
+    mkdir weights/mask
+
     conda deactivate
 else
     echo "Robot segmentation installation aborted by the user."

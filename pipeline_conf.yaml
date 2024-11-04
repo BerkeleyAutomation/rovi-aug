@@ -1,19 +1,23 @@
 device: cuda
 
+# Valid robot types are  
+source_robot: "franka"
+target_robot: "ur5"
+
 # Ro-Aug related parameters
 robot_mask:
   # Paths, should be good if running from rovi-aug root
-  sam_checkpoint_path:
-  sam_package_path:
+  sam_checkpoint_path: "weights/mask/sam_vit_h_4b8939.pth"
+  sam_package_path: deps/SAMed_h/SAMed_h
 
   # Make sure the LORA checkpoint points to the one for the corresponding robot!
-  sam_lora_checkpoint_path: 
+  sam_lora_checkpoint_path: "weights/mask/${source_robot}.pth"
 
-  batch_size:
+  batch_size: 256
 
-  image_input_key:
-  mask_output_key:
-  masked_images_output_key:
+  image_input_key: image
+  mask_output_key: masks
+  masked_images_output_key: masked_imgs
 
 robot_to_robot:
   # Paths, should be good if running from rovi-aug root
