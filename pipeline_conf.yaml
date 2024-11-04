@@ -4,6 +4,22 @@ device: cuda
 source_robot: "franka"
 target_robot: "ur5"
 
+# The tensorflow dataset name (found in dataset_info.json)
+dataset: berkeley_autolab_ur5
+
+# The path to the dataset folder
+data_dir: /path/to/dataset
+
+# Where to write the full data containing the augmented images
+target_dir: /path/to/output
+
+# The number of episodes converted & stored in memory before writing to disk
+max_episodes_in_memory: 100
+
+# Number of processes to handle the data loading and augmentation
+# WARNING: Use 1 for now while the multiprocessing + single process GPU is being developed
+n_workers: 1
+
 # Ro-Aug related parameters
 robot_mask:
   # Paths, should be good if running from rovi-aug root
