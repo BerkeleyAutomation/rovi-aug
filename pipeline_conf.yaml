@@ -21,34 +21,35 @@ robot_mask:
 
 robot_to_robot:
   # Paths, should be good if running from rovi-aug root
-  controlnet_module_path:
-  controlnet_checkpoint_folder_path:
+  controlnet_module_path: deps/r2r/examples/controlnet
+  controlnet_checkpoint_folder_path: "weights/r2r/${source_robot}_to_${target_robot}"
 
-  target_robot:
+  target_robot: ${target_robot}
 
-  batch_size:
+  batch_size: 200
 
-  masked_images_input_key:
-  image_output_key:
+  masked_images_input_key: masked_imgs
+  image_output_key: robot_aug_imgs
 
 video_inpaint:
   # Paths, should be good if running from rovi-aug root
-  video_inpaint_checkpoint_path:
-  video_inpaint_module_path:
+  video_inpaint_checkpoint_path: weights/video-inpaint/E2FGVI-HQ-CVPR22.pth
+  video_inpaint_module_path: deps/video-inpaint
 
-  batch_size:
+  batch_size: 400
 
-  image_input_key:
-  image_output_key:
+  image_input_key: image
+  mask_input_key: masks
+  image_output_key: inpainted_background
 
 # For merging the Ro-Aug images into a single one
 aug_merge:
   # Paths, should be good if running from rovi-aug root
-  video_inpaint_module_path:
+  video_inpaint_module_path: deps/video-inpaint
 
-  robot_aug_imgs_input_key:
-  inpainted_background_input_key:
-  merged_output_key:
+  robot_aug_imgs_input_key: robot_aug_imgs
+  inpainted_background_input_key: inpainted_background
+  merged_output_key: merged_robot_aug
 
 # Vi-Aug related parameters
 view_augmentation:
@@ -60,8 +61,8 @@ view_augmentation:
   zeronvs_module_path: deps/ZeroNVS
 
   batch_size: 80
-  image_input_key: 
-  image_output_key: 
+  image_input_key: merged_robot_aug
+  image_output_key: rovi_aug_imgs
 
   # Settings for the view sampling
   sampler:

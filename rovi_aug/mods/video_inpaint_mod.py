@@ -54,6 +54,7 @@ class VideoInpaintMod(BaseMod):
         VideoInpaintMod.device = cfg.device
         VideoInpaintMod.batch_size = cfg.video_inpaint.batch_size
         VideoInpaintMod.image_input_key = cfg.video_inpaint.image_input_key
+        VideoInpaintMod.mask_input_key = cfg.video_inpaint.mask_input_key
         VideoInpaintMod.image_output_key = cfg.video_inpaint.image_output_key
         
         video_inpaint_checkpoint_path = cfg.video_inpaint.video_inpaint_checkpoint_path
