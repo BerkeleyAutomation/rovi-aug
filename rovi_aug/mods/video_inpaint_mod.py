@@ -16,8 +16,6 @@ class VideoInpaintMod(BaseMod):
     image_input_key = ""
     mask_input_key = ""
     image_output_key = ""
-    video_inpaint_module_path = ""
-    video_inpaint_checkpoint_path = ""
 
     @classmethod
     def mod_features(
@@ -29,25 +27,6 @@ class VideoInpaintMod(BaseMod):
 
     @classmethod
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
-        if VideoInpaintMod.video_inpainter is None:
-            sys.path.append(VideoInpaintMod.video_inpaint_module_path)
-            from refractorized_inference import VideoProcessor
-            args = {
-                "model": "e2fgvi_hq",
-                "width": 256,
-                "height": 256,
-                "step": 10,
-                "num_ref": -1,
-                "neighbor_stride": 5,
-                "savefps": 24,
-                "set_size": True,
-                "save_frame": "./",
-                "video.split": "test.mp4",
-                "use_mp4": True,
-                "ckpt": VideoInpaintMod.video_inpaint_checkpoint_path
-            }
-            VideoInpaintMod.video_inpainter = VideoProcessor(args)
-
         def augment_view(step):
             def process_images(trajectory_images, masked_images):
                 try:
@@ -76,5 +55,24 @@ class VideoInpaintMod(BaseMod):
         VideoInpaintMod.batch_size = cfg.video_inpaint.batch_size
         VideoInpaintMod.image_input_key = cfg.video_inpaint.image_input_key
         VideoInpaintMod.image_output_key = cfg.video_inpaint.image_output_key
-        VideoInpaintMod.video_inpaint_checkpoint_path = cfg.video_inpaint.video_inpaint_checkpoint_path
-        VideoInpaintMod.video_inpaint_module_path = cfg.video_inpaint.video_inpaint_module_path
+        
+        video_inpaint_checkpoint_path = cfg.video_inpaint.video_inpaint_checkpoint_path
+        video_inpaint_module_path = cfg.video_inpaint.video_inpaint_module_path
+
+        sys.path.append(video_inpaint_module_path)
+        from refractorized_inference import VideoProcessor
+        args = {
+            "model": "e2fgvi_hq",
+            "width": 256,
+            "height": 256,
+            "step": 10,
+            "num_ref": -1,
+            "neighbor_stride": 5,
+            "savefps": 24,
+            "set_size": True,
+            "save_frame": "./",
+            "video.split": "test.mp4",
+            "use_mp4": True,
+            "ckpt": video_inpaint_checkpoint_path
+        }
+        VideoInpaintMod.video_inpainter = VideoProcessor(args)

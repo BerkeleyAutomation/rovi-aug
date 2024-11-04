@@ -1,9 +1,64 @@
 device: cuda
 
-view_augmentation:
-  zeronvs_path:
+# Ro-Aug related parameters
+robot_mask:
+  # Paths, should be good if running from rovi-aug root
+  sam_checkpoint_path:
+  sam_package_path:
 
-  # Currently only 
+  # Make sure the LORA checkpoint points to the one for the corresponding robot!
+  sam_lora_checkpoint_path: 
+
+  batch_size:
+
+  image_input_key:
+  mask_output_key:
+  masked_images_output_key:
+
+robot_to_robot:
+  # Paths, should be good if running from rovi-aug root
+  controlnet_module_path:
+  controlnet_checkpoint_folder_path:
+
+  target_robot:
+
+  batch_size:
+
+  masked_images_input_key:
+  image_output_key:
+
+video_inpaint:
+  # Paths, should be good if running from rovi-aug root
+  video_inpaint_checkpoint_path:
+  video_inpaint_module_path:
+
+  batch_size:
+
+  image_input_key:
+  image_output_key:
+
+# For merging the Ro-Aug images into a single one
+aug_merge:
+  # Paths, should be good if running from rovi-aug root
+  video_inpaint_module_path:
+
+  robot_aug_imgs_input_key:
+  inpainted_background_input_key:
+  merged_output_key:
+
+# Vi-Aug related parameters
+view_augmentation:
+  # Paths, should be good if running from rovi-aug root
+  sample_img_path: 
+  zeronvs_checkpoint_path: 
+  zeronvs_config_path: 
+  zeronvs_module_path: 
+
+  batch_size: 80
+  image_input_key: 
+  image_output_key: 
+
+  # Settings for the view sampling
   sampler:
     # Should the same random rotation + translation be used for all views in a trajectory?
     trajectory_consistent: False
@@ -11,4 +66,3 @@ view_augmentation:
     # TODO: Make this general to include specific translation / rotation values
     # Values can be lower, upper, ultra (goes from small translations / rotations to large ones)
     randomization_amount: "lower"
-

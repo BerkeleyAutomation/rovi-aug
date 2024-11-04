@@ -2,7 +2,6 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 import sys
 import torch
-import numpy as np
 from omegaconf import DictConfig
 
 from rovi_aug.mods.base_mod import BaseMod
@@ -14,9 +13,6 @@ class R2RMod(BaseMod):
     device = "cuda:0"
     masked_images_input_key = ""
     image_output_key = ""
-    controlnet_module_path = ""
-    controlnet_checkpoint_folder_path = ""
-    target_robot = ""
 
     @classmethod
     def mod_features(
@@ -28,16 +24,6 @@ class R2RMod(BaseMod):
 
     @classmethod
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
-        if R2RMod.r2r_augmentor is None:
-            sys.path.append(R2RMod.controlnet_module_path)
-            from refactorized_inference import ImageProcessor
-            R2RMod.r2r_augmentor = ImageProcessor(
-                base_model_path="runwayml/stable-diffusion-v1-5",
-                controlnet_path=R2RMod.controlnet_checkpoint_folder_path,
-                batch_size=R2RMod.batch_size,
-                device=R2RMod.device,
-                target_robot=R2RMod.target_robot,
-            )
 
         def augment_view(step):
             def process_images(trajectory_images):
@@ -62,6 +48,17 @@ class R2RMod(BaseMod):
         R2RMod.batch_size = cfg.robot_to_robot.batch_size
         R2RMod.masked_images_input_key = cfg.robot_to_robot.masked_images_input_key
         R2RMod.image_output_key = cfg.robot_to_robot.image_output_key
-        R2RMod.controlnet_module_path = cfg.robot_to_robot.controlnet_module_path
-        R2RMod.controlnet_checkpoint_folder_path = cfg.robot_to_robot.controlnet_checkpoint_folder_path
-        R2RMod.target_robot = cfg.robot_to_robot.target_robot
+        
+        controlnet_module_path = cfg.robot_to_robot.controlnet_module_path
+        controlnet_checkpoint_folder_path = cfg.robot_to_robot.controlnet_checkpoint_folder_path
+        target_robot = cfg.robot_to_robot.target_robot
+
+        sys.path.append(controlnet_module_path)
+        from refactorized_inference import ImageProcessor
+        R2RMod.r2r_augmentor = ImageProcessor(
+            base_model_path="runwayml/stable-diffusion-v1-5",
+            controlnet_path=controlnet_checkpoint_folder_path,
+            batch_size=R2RMod.batch_size,
+            device=R2RMod.device,
+            target_robot=target_robot,
+        )

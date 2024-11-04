@@ -66,7 +66,7 @@ class ViewAugmentationMod(BaseMod):
         view_sampler = ViewSampler.from_config(cfg)
 
         # Hack to import ZeroNVS, since packaging doesn't seem to work
-        sys.path.append(os.path.expanduser(cfg.view_augmentation.zeronvs_path))
+        sys.path.append(os.path.expanduser(cfg.view_augmentation.zeronvs_module_path))
         # import threestudio.utils.misc as misc
         # misc.EXT_DEVICE = device
 
