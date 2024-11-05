@@ -7,7 +7,7 @@ target_robot: "ur5"
 # The tensorflow dataset name (found in dataset_info.json)
 dataset: berkeley_autolab_ur5
 
-# The path to the dataset folder
+# The path to the folder containing the dataset folder
 data_dir: /path/to/dataset
 
 # Where to write the full data containing the augmented images

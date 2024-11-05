@@ -17,6 +17,15 @@ mkdir weights/
 # Query the user for installation
 read -p "Do you want to proceed with installing the robot segmentation code? (Required for Ro-Aug) (y/n): " response
 
+install_common_dependencies () {
+    [ ! -d "deps/rlds_dataset_mod" ] && git clone https://github.com/kpertsch/rlds_dataset_mod.git deps/rlds_dataset_mod
+    pip install -e deps/rlds_dataset_mod/
+    [ ! -d "deps/dlimp" ] && git clone https://github.com/kvablack/dlimp.git deps/dlimp
+    pip install -e deps/dlimp/
+    pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+    pip install -e .
+}
+
 # Check the user's response
 if [[ "$response" == "y" || "$response" == "Y" ]]; then
     echo "Cloning robot segmentation code..."
@@ -28,7 +37,10 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     conda create -n $CONDA_SAM_ENV_NAME python=3.9
     conda activate $CONDA_SAM_ENV_NAME
     pip install -r deps/SAMed_h/requirements.txt
+    pip install icecream
+    pip install safetensors
     pip install gdown
+    install_common_dependencies
 
     echo "Downloading weights for SAM..."
     mkdir weights/mask
@@ -62,6 +74,7 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     conda activate $CONDA_R2R_ENV_NAME
     pip install -r deps/r2r/requirements.txt
     pip install gdown
+    install_common_dependencies
 
     mkdir weights/r2r
 
@@ -89,8 +102,10 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
 
     echo "Creating conda environment for pipeline named $CONDA_VIDEO_INPAINT_ENV_NAME..."
     # Create a conda environment
-    conda env create -f deps/video-inpaint/environment.yml
+    conda env create -f deps/video-inpaint/environment.yml -n $CONDA_VIDEO_INPAINT_ENV_NAME
+    conda activate $CONDA_VIDEO_INPAINT_ENV_NAME
     pip install gdown
+    install_common_dependencies
 
     mkdir weights/video-inpaint
     gdown --fuzzy https://drive.google.com/file/d/10wGdKSUOie0XmCr8SQ2A2FeDe-mfn5w3/view?usp=sharing -O weights/video-inpaint/E2FGVI-HQ-CVPR22.pth
@@ -121,6 +136,8 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     pip install nerfacc -f https://nerfacc-bucket.s3.us-west-2.amazonaws.com/whl/torch-2.0.0_cu118.html
 
     pip install -e deps/ZeroNVS/zeronvs_diffusion/zero123
+
+    install_common_dependencies
 
     echo "Downloading weights for ZeroNVS..."
     # Download the weights

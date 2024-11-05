@@ -3,8 +3,7 @@ import tensorflow_datasets as tfds
 import sys
 from omegaconf import DictConfig
 
-from rovi_aug.mods.base_mod import BaseMod
-from rlds_dataset_mod.mod_functions import add_obs_key
+from rovi_aug.mods.base_mod import BaseMod, add_obs_key
 
 class AugMergeMod(BaseMod):
     aug_merger = None
@@ -45,7 +44,7 @@ class AugMergeMod(BaseMod):
         return ds.map(episode_map_fn)
 
     @classmethod
-    def load(cfg: DictConfig):
+    def load(cls, cfg: DictConfig):
         """
         Uses information from the config file to load the mod.
         """

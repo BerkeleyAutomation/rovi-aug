@@ -5,8 +5,7 @@ import torch
 import numpy as np
 from omegaconf import DictConfig
 
-from rovi_aug.mods.base_mod import BaseMod
-from rlds_dataset_mod.mod_functions import add_obs_key
+from rovi_aug.mods.base_mod import BaseMod, add_obs_key
 
 class RobotMaskMod(BaseMod):
     mask_generator = None
@@ -22,7 +21,7 @@ class RobotMaskMod(BaseMod):
         features: tfds.features.FeaturesDict,
     ) -> tfds.features.FeaturesDict:
         img_size = features["steps"]["observation"][RobotMaskMod.image_input_key].shape[0]
-        new_feature_tensor_type = tfds.features.Tensor(shape=(img_size, img_size, 3), dtype=tf.uint8)(img_size, img_size, 3)
+        new_feature_tensor_type = tfds.features.Tensor(shape=(img_size, img_size, 3), dtype=tf.uint8)
 
         # Adds the mask and masked image features to the output observations
         first_added_feature_dict = add_obs_key(features, RobotMaskMod.mask_output_key, new_feature_tensor_type)
@@ -51,7 +50,7 @@ class RobotMaskMod(BaseMod):
         return ds.map(episode_map_fn)
     
     @classmethod
-    def load(cfg: DictConfig):
+    def load(cls, cfg: DictConfig):
         """
         Uses information from the config file to load the mod.
         """

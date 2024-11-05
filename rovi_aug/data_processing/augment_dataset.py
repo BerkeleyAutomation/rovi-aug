@@ -10,7 +10,6 @@ for gpu in gpus:
 
 import tensorflow_datasets as tfds
 
-import rlds_dataset_mod.mod_functions as mod_fns
 from rlds_dataset_mod.mod_functions import TFDS_MOD_FUNCTIONS
 from rovi_aug.data_processing.multithreaded_adhoc_tfds_builder import (
     MultiThreadedAdhocDatasetBuilder,
@@ -38,10 +37,10 @@ def load_mods(cfg: omegaconf.DictConfig, mods):
     """
     for mod in mods:
         mod_fn = TFDS_MOD_FUNCTIONS[mod]
-        if isinstance(mod_fn, BaseMod):
+        if issubclass(mod_fn, BaseMod):
             mod_fn.load(cfg)
 
-def main(_):
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mods", nargs="+", help="List of augmentation functions. Valid functions include" +
                          "robot_mask, robot_to_robot, video_inpaint, aug_merge, view_augmentation. WARNING: This is only tested with 1 input at a time.")
@@ -49,6 +48,7 @@ def main(_):
     args = parser.parse_args()
 
     cfg = omegaconf.OmegaConf.load(args.conf)
+    omegaconf.OmegaConf.resolve(cfg)
     mods = args.mods
     load_mods(cfg, mods)
     builder = tfds.builder(cfg.dataset, data_dir=cfg.data_dir)
@@ -67,7 +67,7 @@ def main(_):
         config=builder.builder_config,
         data_dir=cfg.target_dir,
         description=builder.info.description,
-        generator_fcn=partial(mod_dataset_generator, builder=builder, mods=cfg.mods),
+        generator_fcn=partial(mod_dataset_generator, builder=builder, mods=args.mods),
         n_workers=cfg.n_workers,
         max_episodes_in_memory=cfg.max_episodes_in_memory,
     )

@@ -6,7 +6,7 @@ import sys
 import torch
 from omegaconf import DictConfig
 
-from rovi_aug.mods.base_mod import BaseMod
+from rovi_aug.mods.base_mod import BaseMod, add_obs_key
 from rovi_aug.view_augmentation.view_augmentation import ViewAugmentation
 from rovi_aug.view_augmentation.sampler.view_sampler import ViewSampler
 
@@ -28,7 +28,8 @@ class ViewAugmentationMod(BaseMod):
         cls,
         features: tfds.features.FeaturesDict,
     ) -> tfds.features.FeaturesDict:
-        return features  # no feature changes
+        img_size = features["steps"]["observation"][ViewAugmentationMod.image_input_key].shape[0]
+        return add_obs_key(features, ViewAugmentationMod.image_output_key, tfds.features.Tensor(shape=(img_size, img_size, 3), dtype=tf.uint8))
 
     @classmethod
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
@@ -53,7 +54,7 @@ class ViewAugmentationMod(BaseMod):
         return ds.map(episode_map_fn)
 
     @classmethod
-    def load(cfg: DictConfig):
+    def load(cls, cfg: DictConfig):
         """
         Uses information from the config file to load the mod.
         """
@@ -71,6 +72,8 @@ class ViewAugmentationMod(BaseMod):
         # misc.EXT_DEVICE = device
 
         from threestudio.models.guidance import zero123_guidance
+        from ldm.models.diffusion import options
+        options.LDM_DISTILLATION_ONLY = True
 
         ViewAugmentationMod.view_augmenter = ViewAugmentation(
             view_sampler,

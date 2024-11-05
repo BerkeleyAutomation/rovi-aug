@@ -20,8 +20,11 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "omegaconf"
+    "omegaconf",
+    "tensorflow",
+    "tensorflow_datasets",
+    "torch @ https://download.pytorch.org/whl/cu118",
 ]
 
 [tool.setuptools.packages.find]
-where = ["rovi_aug"]
+where = ["."]

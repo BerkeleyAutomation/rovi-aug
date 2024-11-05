@@ -1,12 +1,9 @@
 from typing import Any
-from ldm.models.diffusion import options
 from omegaconf import OmegaConf
 import numpy as np
 import torch
 from torchvision.transforms import Resize
-from mirage2.view_augmentation.sampler.view_sampler import ViewSampler
-
-options.LDM_DISTILLATION_ONLY = True
+from rovi_aug.view_augmentation.sampler.view_sampler import ViewSampler
 
 class ViewAugmentation:
 
