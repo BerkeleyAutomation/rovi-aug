@@ -43,7 +43,8 @@ def load_mods(cfg: omegaconf.DictConfig, mods):
 
 def main(_):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mods", nargs="+", help="List of augmentation functions. WARNING: This is only tested with 1 input at a time.")
+    parser.add_argument("--mods", nargs="+", help="List of augmentation functions. Valid functions include" +
+                         "robot_mask, robot_to_robot, video_inpaint, aug_merge, view_augmentation. WARNING: This is only tested with 1 input at a time.")
     parser.add_argument("--conf", help="File path to the pipeline configuration file.")
     args = parser.parse_args()
 

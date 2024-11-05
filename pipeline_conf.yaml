@@ -1,6 +1,6 @@
 device: cuda
 
-# Valid robot types are  
+# Valid robot types are franka, ur5, jaco, and sawyer
 source_robot: "franka"
 target_robot: "ur5"
 

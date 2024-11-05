@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Conda environment variable names
-CONDA_SAM_ENV_NAME="rlds_env_sam"
-CONDA_R2R_ENV_NAME="rlds_env_r2r"
-CONDA_VIDEO_INPAINT_ENV_NAME="rlds_env_video_inpaint"
-CONDA_ZERO_NVS_ENV_NAME="rlds_env_zeronvs"
+CONDA_SAM_ENV_NAME="rlds_env_sam2"
+CONDA_R2R_ENV_NAME="rlds_env_r2r2"
+CONDA_VIDEO_INPAINT_ENV_NAME="rlds_env_video_inpaint2"
+CONDA_ZERO_NVS_ENV_NAME="rlds_env_zeronvs2"
 
 # Print introductory information
 echo "Welcome to the Rovi-Aug Installer!"
@@ -28,10 +28,20 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     conda create -n $CONDA_SAM_ENV_NAME python=3.9
     conda activate $CONDA_SAM_ENV_NAME
     pip install -r deps/SAMed_h/requirements.txt
-    
+    pip install gdown
+
     echo "Downloading weights for SAM..."
     mkdir weights/mask
 
+    # Download the lora weights
+    # The output weights in mask will be named as source_robot.pth
+    gdown --fuzzy https://drive.google.com/file/d/1R3__gQzA4oQ4Iu6KKqdEFxKiohy2fDgX/view?usp=sharing -O weights/mask/franka.pth
+    gdown --fuzzy https://drive.google.com/file/d/1Ah3BlVYm_7f1W5z-nOSjKOryBlPFg4Qh/view?usp=sharing -O weights/mask/jaco.pth
+    gdown --fuzzy https://drive.google.com/file/d/1t4Vf4x02fd-FH6asL-goiqX8dE9TWkeU/view?usp=sharing -O weights/mask/sawyer.pth
+    gdown --fuzzy https://drive.google.com/file/d/1pPoMEowFonKfTK9EXkRre6y5l_3kB1U2/view?usp=sharing -O weights/mask/ur5.pth
+
+    # Download SAM weights
+    gdown --fuzzy https://drive.google.com/file/d/13j4pGfH0kF5YCmmuqs3-tS88kIA9cwEn/view?usp=sharing -O weights/mask/sam_vit_h_4b8939.pth
     conda deactivate
 else
     echo "Robot segmentation installation aborted by the user."
@@ -50,7 +60,19 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     # Create a conda environment
     conda create -n $CONDA_R2R_ENV_NAME python=3.9
     conda activate $CONDA_R2R_ENV_NAME
-    pip install -r deps/r2r/
+    pip install -r deps/r2r/requirements.txt
+    pip install gdown
+
+    mkdir weights/r2r
+
+    # Download control-net weights
+    gdown --fuzzy https://drive.google.com/drive/folders/1vaHlGZfbsA0unB2peNyT-FFu-zHFvFGh?usp=sharing --folder -O weights/r2r/franka_to_jaco
+    gdown --fuzzy https://drive.google.com/drive/folders/1M6vqi8TXMH_Ku8bxhExqQZpbEnTteWrb?usp=sharing --folder -O weights/r2r/franka_to_sawyer
+    gdown --fuzzy https://drive.google.com/drive/folders/1qc49FtIUImjjbpQc-1v3-1oLlP3jZ8uW?usp=sharing --folder -O weights/r2r/franka_to_ur5
+    gdown --fuzzy https://drive.google.com/drive/folders/1NtT_FkbsoZJinHrb7_ON93ECbKthbrUb?usp=sharing --folder -O weights/r2r/jaco_to_franka
+    gdown --fuzzy https://drive.google.com/drive/folders/1Pgg1JjCkLhhwFSSKl5xcK4sXgn5GlxEE?usp=sharing --folder -O weights/r2r/sawyer_to_ur5
+    gdown --fuzzy https://drive.google.com/drive/folders/1CQ5opVnpn0xOwDarDI3Hfpc6pz1_CYZl?usp=sharing --folder -O weights/r2r/ur5_to_franka
+
     conda deactivate
 else
     echo "Robot to robot installation aborted by the user."
@@ -68,6 +90,10 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     echo "Creating conda environment for pipeline named $CONDA_VIDEO_INPAINT_ENV_NAME..."
     # Create a conda environment
     conda env create -f deps/video-inpaint/environment.yml
+    pip install gdown
+
+    mkdir weights/video-inpaint
+    gdown --fuzzy https://drive.google.com/file/d/10wGdKSUOie0XmCr8SQ2A2FeDe-mfn5w3/view?usp=sharing -O weights/video-inpaint/E2FGVI-HQ-CVPR22.pth
     conda deactivate
 else
     echo "Video inpainting installation aborted by the user."
