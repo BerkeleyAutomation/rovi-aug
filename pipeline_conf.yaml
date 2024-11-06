@@ -5,13 +5,13 @@ source_robot: "franka"
 target_robot: "ur5"
 
 # The tensorflow dataset name (found in dataset_info.json)
-dataset: berkeley_autolab_ur5
+dataset: franka_tiger
 
 # The path to the folder containing the dataset folder
-data_dir: data/
+data_dir: data/franka_tiger
 
 # Where to write the full data containing the augmented images
-target_dir: /path/to/output
+target_dir: data/franka_tiger_aug
 
 # The number of episodes converted & stored in memory before writing to disk
 max_episodes_in_memory: 100
