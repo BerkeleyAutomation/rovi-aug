@@ -8,7 +8,7 @@ target_robot: "ur5"
 dataset: berkeley_autolab_ur5
 
 # The path to the folder containing the dataset folder
-data_dir: /path/to/dataset
+data_dir: data/
 
 # Where to write the full data containing the augmented images
 target_dir: /path/to/output

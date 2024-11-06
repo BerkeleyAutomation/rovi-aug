@@ -1,5 +1,6 @@
 deps/*
 weights/*
+data/*
 
 # ignore pycache
 **/__pycache__/*
