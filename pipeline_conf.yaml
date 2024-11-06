@@ -60,9 +60,6 @@ video_inpaint:
 
 # For merging the Ro-Aug images into a single one
 aug_merge:
-  # Paths, should be good if running from rovi-aug root
-  video_inpaint_module_path: deps/video-inpaint
-
   robot_aug_imgs_input_key: robot_aug_imgs
   inpainted_background_input_key: inpainted_background
   merged_output_key: merged_robot_aug

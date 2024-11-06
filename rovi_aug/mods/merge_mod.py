@@ -8,13 +8,9 @@ from omegaconf import DictConfig
 from rovi_aug.mods.base_mod import BaseMod, add_obs_key
 
 class AugMergeMod(BaseMod):
-    aug_merger = None
-
     robot_aug_imgs_input_key = ""
     inpainted_background_input_key = ""
     merged_output_key = ""
-
-    video_inpaint_module_path = ""
 
     @classmethod
     def mod_features(
@@ -26,17 +22,9 @@ class AugMergeMod(BaseMod):
 
     @classmethod
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
-        if AugMergeMod.aug_merger is None:
-            sys.path.append(AugMergeMod.video_inpaint_module_path)
-            from merge_two_images_refactoriezed import ImageProcessor
-            AugMergeMod.aug_merger = ImageProcessor('.')
 
-        def augment_view(step):
-            def process_images(background_images, objects):
-                augmented_img = AugMergeMod.aug_merger.paste_objects(background_images, objects)
-                return augmented_img
-            
-            step["observation"][AugMergeMod.merged_output_key] = tf.numpy_function(process_images, [step["observation"][AugMergeMod.inpainted_background_input_key], step["observation"][AugMergeMod.robot_aug_imgs_input_key]], tf.uint8)
+        def augment_view(step):            
+            step["observation"][AugMergeMod.merged_output_key] = tf.numpy_function(AugMergeMod.merge_images, [step["observation"][AugMergeMod.inpainted_background_input_key], step["observation"][AugMergeMod.robot_aug_imgs_input_key]], tf.uint8)
             return step
 
         def episode_map_fn(episode):
@@ -53,7 +41,6 @@ class AugMergeMod(BaseMod):
         AugMergeMod.robot_aug_imgs_input_key = cfg.aug_merge.robot_aug_imgs_input_key
         AugMergeMod.inpainted_background_input_key = cfg.aug_merge.inpainted_background_input_key
         AugMergeMod.merged_output_key = cfg.aug_merge.merged_output_key
-        AugMergeMod.video_inpaint_module_path = cfg.aug_merge.video_inpaint_module_path
 
     @staticmethod
     def change_brightness(img, mean_value=100, mask=None, randomness=0):
