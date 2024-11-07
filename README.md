@@ -14,12 +14,14 @@ Run the following script from the root directory of the repository and follow th
 ./install.sh
 ```
 
+We support datasets in the standardized RLDS format from datasets such as Open X-Embodiment. To test out the pipeline on a small dataset, take a look here at a single trajectory: [RoVi-Aug Dataset Example](https://drive.google.com/file/d/14tH01w5MKlMdOzoyv0pviztFK-Fsd60f/view?usp=sharing).
+
 # Code Structure & Usage
 ![Pipeline](docs/pipeline.png)
 
-Each part of the pipeline (below) runs in its own conda environment due to dependency conflicts. At a high level, each stage in the pipeline processes datasets in the rlds format by loading in data from certain keys in the feature dictionary and outputting a new key in the features dictionary. The general way of running the pipeline is running each stage individually through an entire dataset, saving the results, and then running the next stage on that modified dataset. This approach makes it easier to use GPU operations with TensorFlow datasets.
+Each part of the pipeline (below) runs in its own conda environment due to dependency conflicts. At a high level, each stage in the pipeline processes datasets in the RLDS format by loading in data from certain keys in the feature dictionary and outputting a new key in the features dictionary. The general way of running the pipeline is running each stage individually through an entire dataset, saving the results, and then running the next stage on that modified dataset. This approach makes it easier to use GPU operations with TensorFlow datasets.
 
-As a concrete example, to runthe first stage of the pipeline to generate the masks of the robot, first take a look at the `pipeline_conf.yaml` file and set the appropriate values according to those comments. Then, run the following commands:
+As a concrete example, to run the first stage of the pipeline to generate the masks of the robot, first take a look at the `pipeline_conf.yaml` file and set the appropriate values according to those comments. Then, run the following commands:
 ```
 conda activate rlds_env_sam
 python3 rovi_aug/data_processing/augment_dataset.py --mods robot_mask --conf pipeline_conf.yaml
