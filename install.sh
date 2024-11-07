@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Conda environment variable names
-CONDA_SAM_ENV_NAME="rlds_env_sam2"
+CONDA_SAM_ENV_NAME="rlds_env_sam"
 CONDA_R2R_ENV_NAME="rlds_env_r2r"
 CONDA_VIDEO_INPAINT_ENV_NAME="rlds_env_video_inpaint"
 CONDA_ZERO_NVS_ENV_NAME="rlds_env_zeronvs"
