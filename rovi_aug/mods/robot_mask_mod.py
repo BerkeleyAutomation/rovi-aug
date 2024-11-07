@@ -1,7 +1,8 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
-import sys
+from importlib import import_module
 import torch
+import random
 import numpy as np
 from omegaconf import DictConfig
 
@@ -14,6 +15,10 @@ class RobotMaskMod(BaseMod):
     image_input_key = "front_rgb"
     mask_output_key = "masks"
     masked_images_output_key = "masked_imgs"
+
+    mask_args = dict()
+    model = None
+    multimask_output = False
 
     @classmethod
     def mod_features(
@@ -31,7 +36,7 @@ class RobotMaskMod(BaseMod):
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
         def generate_masks(step):
             def process_images(trajectory_images):
-                masked_images, output_masks = RobotMaskMod.mask_generator.inference(torch.from_numpy(trajectory_images).permute(0, 3, 1, 2))
+                masked_images, output_masks = RobotMaskMod.inference(trajectory_images)
                 masked_images *= 255
                 masked_images = masked_images.permute(0, 2, 3, 1).cpu().numpy().astype(np.uint8)
                 output_masks = output_masks.permute(0, 2, 3, 1).cpu().numpy().astype(np.uint8)
@@ -64,9 +69,7 @@ class RobotMaskMod(BaseMod):
         sam_package_path = cfg.robot_mask.sam_package_path
         sam_lora_checkpoint_path = cfg.robot_mask.sam_lora_checkpoint_path
 
-        sys.path.append(sam_package_path)
-        from inference_factorized import InferenceManager
-        mask_args = {
+        RobotMaskMod.mask_args = {
             "num_classes": 1,
             "img_size": 256,
             "input_size": 256,
@@ -80,4 +83,60 @@ class RobotMaskMod(BaseMod):
             "mask_threshold": 0.5,
             "device": RobotMaskMod.device,
         }
-        RobotMaskMod.mask_generator = InferenceManager(mask_args)
+        RobotMaskMod.setup_seed()
+        RobotMaskMod.setup_model()
+
+    @staticmethod
+    def inference(images):
+        """
+        Generates masked out iamges and the corresponding robot masks for the input images.
+        """
+        with torch.no_grad():
+            resulting_size = (RobotMaskMod.mask_args['img_size'], RobotMaskMod.mask_args['img_size'])
+            images = torch.nn.functional.upsample_bilinear(images.to(RobotMaskMod.mask_args['device']).float() / 1.0, size=resulting_size)
+            outputs = RobotMaskMod.model(images, RobotMaskMod.multimask_output, RobotMaskMod.args['img_size'])
+
+            output_masks = outputs['masks']
+            output_masks = torch.nn.functional.upsample_bilinear(output_masks.float(), size=resulting_size)
+            output_masks = (output_masks[:, 1, :, :] > RobotMaskMod.args['mask_threshold']).unsqueeze(1)
+
+            masked_image = (images / 255.0) * output_masks
+
+            output_masks = output_masks.expand_as(images)
+            masked_image[output_masks == 0] = 1
+            return masked_image, output_masks
+        
+    @staticmethod
+    def setup_model():
+        # Lazy load
+        from segment_anything import sam_model_registry
+        sam, _ = sam_model_registry[RobotMaskMod.args['vit_name']](
+            image_size=RobotMaskMod.args['img_size'],
+            num_classes=RobotMaskMod.args['num_classes'],
+            checkpoint=RobotMaskMod.args['ckpt']
+        )
+        sam = sam.to(RobotMaskMod.args['device'])
+        pkg = import_module(RobotMaskMod.args['module'])
+        RobotMaskMod.model = pkg.LoRA_Sam(sam, RobotMaskMod.args['rank'])
+
+        assert RobotMaskMod.args['lora_ckpt'] is not None
+        RobotMaskMod.model.load_lora_parameters(RobotMaskMod.args['lora_ckpt'])
+        RobotMaskMod.model = RobotMaskMod.model.to(RobotMaskMod.args['device'])
+
+        RobotMaskMod.multimask_output = RobotMaskMod.args['num_classes'] > 1
+        RobotMaskMod.model.eval()
+
+    @staticmethod
+    def setup_seed():
+        import torch.backends.cudnn as cudnn
+        if not RobotMaskMod.args['deterministic']:
+            cudnn.benchmark = True
+            cudnn.deterministic = False
+        else:
+            cudnn.benchmark = False
+            cudnn.deterministic = True
+        seed = RobotMaskMod.args['seed']
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
