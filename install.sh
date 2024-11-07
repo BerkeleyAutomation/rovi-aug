@@ -29,8 +29,6 @@ install_common_dependencies () {
 # Check the user's response
 if [[ "$response" == "y" || "$response" == "Y" ]]; then
     echo "Cloning robot segmentation code..."
-    # Clone the repository
-    git clone --branch SAM https://github.com/chenfengxu714/diffusers-robotic-inpainting.git deps/SAMed_h
 
     echo "Creating conda environment for pipeline named $CONDA_SAM_ENV_NAME..."
     # Create a conda environment
@@ -62,8 +60,6 @@ read -p "Do you want to proceed with installing the robot to robot diffusion cod
 # Check the user's response
 if [[ "$response" == "y" || "$response" == "Y" ]]; then
     echo "Cloning the robot to robot diffusion code..."
-    # Clone the repository
-    git clone --branch r2r https://github.com/chenfengxu714/diffusers-robotic-inpainting.git deps/r2r
 
     echo "Creating conda environment for pipeline named $CONDA_R2R_ENV_NAME..."
     # Create a conda environment
@@ -89,8 +85,6 @@ read -p "Do you want to proceed with installing the video inpainting code? (Requ
 # Check the user's response
 if [[ "$response" == "y" || "$response" == "Y" ]]; then
     echo "Cloning video inpainting code..."
-    # Clone the repository
-    git clone --branch video-inpaint https://github.com/chenfengxu714/diffusers-robotic-inpainting.git deps/video-inpaint
 
     echo "Creating conda environment for pipeline named $CONDA_VIDEO_INPAINT_ENV_NAME..."
     # Create a conda environment
