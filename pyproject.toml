@@ -22,8 +22,7 @@ classifiers = [
 dependencies = [
     "omegaconf",
     "tensorflow",
-    "tensorflow_datasets",
-    "torch @ https://download.pytorch.org/whl/cu118",
+    "tensorflow_datasets"
 ]
 
 [tool.setuptools.packages.find]

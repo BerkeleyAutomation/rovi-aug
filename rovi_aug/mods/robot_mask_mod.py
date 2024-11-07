@@ -4,6 +4,7 @@ from importlib import import_module
 import torch
 import random
 import numpy as np
+import sys
 from omegaconf import DictConfig
 
 from rovi_aug.mods.base_mod import BaseMod, add_obs_key
@@ -36,7 +37,7 @@ class RobotMaskMod(BaseMod):
     def mod_dataset(cls, ds: tf.data.Dataset) -> tf.data.Dataset:
         def generate_masks(step):
             def process_images(trajectory_images):
-                masked_images, output_masks = RobotMaskMod.inference(trajectory_images)
+                masked_images, output_masks = RobotMaskMod.inference(torch.from_numpy(trajectory_images).permute(0, 3, 1, 2))
                 masked_images *= 255
                 masked_images = masked_images.permute(0, 2, 3, 1).cpu().numpy().astype(np.uint8)
                 output_masks = output_masks.permute(0, 2, 3, 1).cpu().numpy().astype(np.uint8)
@@ -67,6 +68,7 @@ class RobotMaskMod(BaseMod):
 
         sam_checkpoint_path = cfg.robot_mask.sam_checkpoint_path
         sam_package_path = cfg.robot_mask.sam_package_path
+        sys.path.append(sam_package_path)
         sam_lora_checkpoint_path = cfg.robot_mask.sam_lora_checkpoint_path
 
         RobotMaskMod.mask_args = {
@@ -94,11 +96,11 @@ class RobotMaskMod(BaseMod):
         with torch.no_grad():
             resulting_size = (RobotMaskMod.mask_args['img_size'], RobotMaskMod.mask_args['img_size'])
             images = torch.nn.functional.upsample_bilinear(images.to(RobotMaskMod.mask_args['device']).float() / 1.0, size=resulting_size)
-            outputs = RobotMaskMod.model(images, RobotMaskMod.multimask_output, RobotMaskMod.args['img_size'])
+            outputs = RobotMaskMod.model(images, RobotMaskMod.multimask_output, RobotMaskMod.mask_args['img_size'])
 
             output_masks = outputs['masks']
             output_masks = torch.nn.functional.upsample_bilinear(output_masks.float(), size=resulting_size)
-            output_masks = (output_masks[:, 1, :, :] > RobotMaskMod.args['mask_threshold']).unsqueeze(1)
+            output_masks = (output_masks[:, 1, :, :] > RobotMaskMod.mask_args['mask_threshold']).unsqueeze(1)
 
             masked_image = (images / 255.0) * output_masks
 
@@ -109,33 +111,34 @@ class RobotMaskMod(BaseMod):
     @staticmethod
     def setup_model():
         # Lazy load
+
         from segment_anything import sam_model_registry
-        sam, _ = sam_model_registry[RobotMaskMod.args['vit_name']](
-            image_size=RobotMaskMod.args['img_size'],
-            num_classes=RobotMaskMod.args['num_classes'],
-            checkpoint=RobotMaskMod.args['ckpt']
+        sam, _ = sam_model_registry[RobotMaskMod.mask_args['vit_name']](
+            image_size=RobotMaskMod.mask_args['img_size'],
+            num_classes=RobotMaskMod.mask_args['num_classes'],
+            checkpoint=RobotMaskMod.mask_args['ckpt']
         )
-        sam = sam.to(RobotMaskMod.args['device'])
-        pkg = import_module(RobotMaskMod.args['module'])
-        RobotMaskMod.model = pkg.LoRA_Sam(sam, RobotMaskMod.args['rank'])
+        sam = sam.to(RobotMaskMod.mask_args['device'])
+        pkg = import_module(RobotMaskMod.mask_args['module'])
+        RobotMaskMod.model = pkg.LoRA_Sam(sam, RobotMaskMod.mask_args['rank'])
 
-        assert RobotMaskMod.args['lora_ckpt'] is not None
-        RobotMaskMod.model.load_lora_parameters(RobotMaskMod.args['lora_ckpt'])
-        RobotMaskMod.model = RobotMaskMod.model.to(RobotMaskMod.args['device'])
+        assert RobotMaskMod.mask_args['lora_ckpt'] is not None
+        RobotMaskMod.model.load_lora_parameters(RobotMaskMod.mask_args['lora_ckpt'])
+        RobotMaskMod.model = RobotMaskMod.model.to(RobotMaskMod.mask_args['device'])
 
-        RobotMaskMod.multimask_output = RobotMaskMod.args['num_classes'] > 1
+        RobotMaskMod.multimask_output = RobotMaskMod.mask_args['num_classes'] > 1
         RobotMaskMod.model.eval()
 
     @staticmethod
     def setup_seed():
         import torch.backends.cudnn as cudnn
-        if not RobotMaskMod.args['deterministic']:
+        if not RobotMaskMod.mask_args['deterministic']:
             cudnn.benchmark = True
             cudnn.deterministic = False
         else:
             cudnn.benchmark = False
             cudnn.deterministic = True
-        seed = RobotMaskMod.args['seed']
+        seed = RobotMaskMod.mask_args['seed']
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)

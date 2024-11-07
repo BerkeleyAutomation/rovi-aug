@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Conda environment variable names
-CONDA_SAM_ENV_NAME="rlds_env_sam"
+CONDA_SAM_ENV_NAME="rlds_env_sam2"
 CONDA_R2R_ENV_NAME="rlds_env_r2r"
 CONDA_VIDEO_INPAINT_ENV_NAME="rlds_env_video_inpaint"
 CONDA_ZERO_NVS_ENV_NAME="rlds_env_zeronvs"
@@ -29,6 +29,7 @@ install_common_dependencies () {
 # Check the user's response
 if [[ "$response" == "y" || "$response" == "Y" ]]; then
     echo "Cloning robot segmentation code..."
+    git clone https://github.com/hitachinsk/SAMed.git deps/SAMed_h
 
     echo "Creating conda environment for pipeline named $CONDA_SAM_ENV_NAME..."
     # Create a conda environment

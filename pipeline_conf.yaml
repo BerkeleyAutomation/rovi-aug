@@ -31,7 +31,7 @@ robot_mask:
 
   batch_size: 256
 
-  image_input_key: image
+  image_input_key: exterior_image_1_left
   mask_output_key: masks
   masked_images_output_key: masked_imgs
 
