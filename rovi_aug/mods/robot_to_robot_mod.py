@@ -33,7 +33,7 @@ class R2RMod(BaseMod):
         def augment_view(step):
             def process_images(trajectory_images):
                 with torch.no_grad():
-                    return R2RMod.r2r_augmentor.process_folders(trajectory_images)
+                    return R2RMod.process_image_trajectory(trajectory_images)
 
             step["observation"][R2RMod.image_output_key] = tf.numpy_function(process_images, [step["observation"][R2RMod.masked_images_input_key]], tf.uint8)
             return step
