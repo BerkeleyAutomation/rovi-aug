@@ -8,7 +8,7 @@ target_robot: "ur5"
 dataset: franka_tiger
 
 # The path to the folder containing the dataset folder
-data_dir: data/franka_tiger
+data_dir: data/
 
 # Where to write the full data containing the augmented images
 target_dir: data/franka_tiger_aug
@@ -76,6 +76,7 @@ view_augmentation:
   batch_size: 80
 
   # If using Vi-Aug directly, then modify this to the input key of the image, such as exterior_image_1_left
+  # image_input_key: merged_robot_aug
   image_input_key: exterior_image_1_left
   image_output_key: rovi_aug_imgs
 

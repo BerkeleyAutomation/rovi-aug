@@ -102,7 +102,7 @@ else
 fi
 
 # Query the user for installation
-read -p "Do you want to proceed with installing the viewpoint augmentation code? (Required for /Vi-Aug) (y/n): " response
+read -p "Do you want to proceed with installing the viewpoint augmentation code? (Required for Vi-Aug) (y/n): " response
 
 # Check the user's response
 if [[ "$response" == "y" || "$response" == "Y" ]]; then
@@ -115,16 +115,17 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     conda create -n $CONDA_ZERO_NVS_ENV_NAME python=3.8 pip
     conda activate $CONDA_ZERO_NVS_ENV_NAME
 
+    install_common_dependencies
+
     pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
     conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
-    pip install ninja pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
+    pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 
-    pip install -r deps/ZeroNVS/requirements-zeronvs.txt
+    # Install a separately created requirements-zeronvs.txt file!
+    pip install -r installation_requirements/requirements-zeronvs.txt
     pip install nerfacc -f https://nerfacc-bucket.s3.us-west-2.amazonaws.com/whl/torch-2.0.0_cu118.html
 
     pip install -e deps/ZeroNVS/zeronvs_diffusion/zero123
-
-    install_common_dependencies
 
     echo "Downloading weights for ZeroNVS..."
     # Download the weights

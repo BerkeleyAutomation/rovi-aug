@@ -44,7 +44,7 @@ class ViewAugmentationMod(BaseMod):
                 ViewAugmentationMod.traj_idx += 1
                 return trajectory_images
 
-            step["observation"][ViewAugmentationMod.image_input_key] = tf.numpy_function(process_images, [step["observation"][ViewAugmentationMod.image_output_key]], tf.uint8)
+            step["observation"][ViewAugmentationMod.image_output_key] = tf.numpy_function(process_images, [step["observation"][ViewAugmentationMod.image_input_key]], tf.uint8)
             return step
 
         def episode_map_fn(episode):
