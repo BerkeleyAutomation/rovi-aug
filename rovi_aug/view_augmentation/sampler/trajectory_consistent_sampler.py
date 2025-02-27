@@ -1,5 +1,5 @@
 import torch
-from mirage2.view_augmentation.sampler.view_sampler import ViewSampler
+from rovi_aug.view_augmentation.sampler.view_sampler import ViewSampler
 
 class TrajectoryConsistentSampler(ViewSampler):
 

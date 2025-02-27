@@ -20,7 +20,7 @@ read -p "Do you want to proceed with installing the robot segmentation code? (Re
 install_common_dependencies () {
     [ ! -d "deps/rlds_dataset_mod" ] && git clone https://github.com/kpertsch/rlds_dataset_mod.git deps/rlds_dataset_mod
     pip install -e deps/rlds_dataset_mod/
-    [ ! -d "deps/dlimp" ] && git clone https://github.com/kvablack/dlimp.git deps/dlimp
+    [ ! -d "deps/dlimp" ] && git clone https://github.com/KDharmarajanDev/dlimp.git deps/dlimp
     pip install -e deps/dlimp/
     pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu118
     pip install -e .

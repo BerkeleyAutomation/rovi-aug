@@ -74,14 +74,16 @@ view_augmentation:
   zeronvs_module_path: deps/ZeroNVS
 
   batch_size: 80
-  image_input_key: merged_robot_aug
+
+  # If using Vi-Aug directly, then modify this to the input key of the image, such as exterior_image_1_left
+  image_input_key: exterior_image_1_left
   image_output_key: rovi_aug_imgs
 
   # Settings for the view sampling
   sampler:
     # Should the same random rotation + translation be used for all views in a trajectory?
-    trajectory_consistent: False
+    trajectory_consistent_sampling: False
     
     # TODO: Make this general to include specific translation / rotation values
     # Values can be lower, upper, ultra (goes from small translations / rotations to large ones)
-    randomization_amount: "lower"
+    extrinsics_setting: "lower"

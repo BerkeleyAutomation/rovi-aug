@@ -3,6 +3,10 @@ from functools import partial
 
 import omegaconf
 import argparse
+
+# Must keep this otherwise there is going to be a hanging issue with importing tensorflow later
+# See: https://discuss.pytorch.org/t/random-device-could-not-be-read/138697/5
+import torch 
 import tensorflow as tf
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
@@ -58,7 +62,7 @@ def main():
     print(features)
     print("##############################################")
     assert cfg.data_dir != cfg.target_dir   # prevent overwriting original dataset
-
+    
     mod_dataset_builder = MultiThreadedAdhocDatasetBuilder(
         name=cfg.dataset,
         version=builder.version,
